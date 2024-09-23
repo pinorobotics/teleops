@@ -1,0 +1,48 @@
+#!/usr/bin/env -S java --source 22
+
+import java.util.*;
+import java.util.stream.*;
+import java.io.*;
+import java.nio.file.*;
+
+/**
+ * Cross-platform launcher script.
+ *
+ * Website: https://github.com/pinorobotics
+ *
+ * @author aeon_flux <aeon_flux@eclipso.ch>
+ */
+ class Launcher {
+
+    static final String MAIN_CLASS = "pinorobotics.teleops.TeleopTwistKeyboardApp";
+    
+    /**
+     * Parent folder of this script
+     */
+    static Path BASE_DIR;
+
+    static void fail(String msg) {
+        System.err.println(msg);
+        System.exit(1);
+    }
+
+    public static void main(String... args) throws Exception {
+        var javaVersion = 22;
+        if (Runtime.version().feature() < javaVersion)
+            fail("Java %s is required".formatted(javaVersion));
+
+        BASE_DIR = Paths.get(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI())
+            .getParent();
+        var classpath = BASE_DIR.resolve("libs").toString();
+        var argsList = new ArrayList<String>(List.of(
+            "java",
+            "-p", classpath,
+            "--add-modules", "teleops"));
+        argsList.add(MAIN_CLASS);
+        argsList.addAll(Arrays.asList(args));
+        System.err.println("Run command: " + argsList);
+        // separate further output from application with a newline
+        System.err.println();
+        System.exit(new ProcessBuilder(argsList).inheritIO().start().waitFor());
+    }
+}
