@@ -75,7 +75,6 @@ public class TeleopTwistKeyboardApp {
     }
 
     public static void main(String... args) throws Exception {
-        XLogger.load("logging-teleops.properties");
         CommandOptions properties = null;
         try {
             properties = CommandOptions.collectOptions(args);
@@ -85,6 +84,10 @@ public class TeleopTwistKeyboardApp {
             usage();
             return;
         }
+        XLogger.load(
+                properties.isOptionTrue("debug")
+                        ? "logging-teleops-debug.properties"
+                        : "logging-teleops.properties");
         var topicName = properties.getOption("topic").orElse(DEFAULT_TOPIC_NAME);
         var frameName = properties.getOption("frame").orElse("");
         var cli = new CommandLineInterface();
