@@ -17,58 +17,41 @@
  */
 package pinorobotics.teleops;
 
+import static java.util.stream.Collectors.joining;
+
 import id.jros2client.JRos2Client;
 import id.jros2client.JRos2ClientFactory;
+import id.jros2messages.control_msgs.JointJogMessage;
 import id.jros2messages.geometry_msgs.TwistStampedMessage;
-import id.jros2messages.std_msgs.HeaderMessage;
+import id.jros2messages.sensor_msgs.JointStateMessage;
+import id.jrosclient.JRosClient;
 import id.jrosclient.TopicSubmissionPublisher;
-import id.jrosmessages.geometry_msgs.TwistMessage;
-import id.jrosmessages.geometry_msgs.Vector3Message;
-import id.jrosmessages.primitives.Time;
+import id.jrosclient.TopicSubscriber;
 import id.xfunction.Preconditions;
 import id.xfunction.ResourceUtils;
 import id.xfunction.cli.ArgumentParsingException;
 import id.xfunction.cli.CommandLineInterface;
 import id.xfunction.cli.CommandOptions;
+import id.xfunction.function.Unchecked;
 import id.xfunction.logging.XLogger;
 import java.io.IOException;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Flow.Subscription;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.IntStream;
 import pinorobotics.jros2services.JRos2ServiceClientFactory;
 import pinorobotics.jrosservices.std_srvs.TriggerRequestMessage;
 import pinorobotics.jrosservices.std_srvs.TriggerServiceDefinition;
 
 public class TeleopTwistKeyboardApp {
     private static final XLogger LOGGER = XLogger.getLogger(TeleopTwistKeyboardApp.class);
-    private static String DEFAULT_TOPIC_NAME = "/servo_node/delta_twist_cmds";
-    private static final Map<Character, TwistMessage> KEY_MAP =
-            Map.of(
-                    'w',
-                    new TwistMessage()
-                            .withLinear(new Vector3Message(1, 0, 0))
-                            .withAngular(new Vector3Message(0, 0, 0)),
-                    's',
-                    new TwistMessage()
-                            .withLinear(new Vector3Message(-1, 0, 0))
-                            .withAngular(new Vector3Message(0, 0, 0)),
-                    'a',
-                    new TwistMessage()
-                            .withLinear(new Vector3Message(0, 1, 0))
-                            .withAngular(new Vector3Message(0, 0, 0)),
-                    'd',
-                    new TwistMessage()
-                            .withLinear(new Vector3Message(0, -1, 0))
-                            .withAngular(new Vector3Message(0, 0, 0)),
-                    'q',
-                    new TwistMessage()
-                            .withLinear(new Vector3Message(0, 0, 1))
-                            .withAngular(new Vector3Message(0, 0, 0)),
-                    'e',
-                    new TwistMessage()
-                            .withLinear(new Vector3Message(0, 0, -1))
-                            .withAngular(new Vector3Message(0, 0, 0)));
+    private static final String DEFAULT_TWIST_TOPIC_NAME = "/servo_node/delta_twist_cmds";
+    private static final String DEFAULT_JOG_TOPIC_NAME = "/servo_node/delta_joint_cmds";
+    private static final String DEFAULT_JOINT_STATES_TOPIC_NAME = "/joint_states";
 
     private static void usage() throws IOException {
         new ResourceUtils().readResourceAsStream("README-teleops.md").forEach(System.out::println);
@@ -88,26 +71,64 @@ public class TeleopTwistKeyboardApp {
                 properties.isOptionTrue("debug")
                         ? "logging-teleops-debug.properties"
                         : "logging-teleops.properties");
-        var topicName = properties.getOption("topic").orElse(DEFAULT_TOPIC_NAME);
+        var twistTopicName = properties.getOption("twistTopic").orElse(DEFAULT_TWIST_TOPIC_NAME);
+        var jogTopicName = properties.getOption("jogTopic").orElse(DEFAULT_JOG_TOPIC_NAME);
         var frameName = properties.getOption("frame").orElse("");
         var cli = new CommandLineInterface();
-        cli.print("Publishing to the topic %s", topicName);
+        var twistMessageProvider = new TwistStampedMessageProvider(frameName);
+        cli.print("Publishing to the topic %s", twistTopicName);
         try (var client = new JRos2ClientFactory().createClient();
-                var publisher =
-                        new TopicSubmissionPublisher<>(TwistStampedMessage.class, topicName)) {
-            client.publish(publisher);
+                var publisherTwist =
+                        new TopicSubmissionPublisher<>(TwistStampedMessage.class, twistTopicName);
+                var publisherJog =
+                        new TopicSubmissionPublisher<>(JointJogMessage.class, jogTopicName)) {
+            client.publish(publisherTwist);
+            client.publish(publisherJog);
 
+            var jointStatesTopic =
+                    properties
+                            .getOption("jointStatesTopic")
+                            .orElse(DEFAULT_JOINT_STATES_TOPIC_NAME);
+            var jogKeys = "Jog commands are disabled";
+            List<String> joints =
+                    properties.isOptionTrue("enableJog")
+                            ? readJoints(client, jointStatesTopic)
+                            : List.of();
+            if (!joints.isEmpty()) {
+                jogKeys =
+                        """
+                        Use numeric keys to jog (rotate) joints in the following order:
+
+                        %s
+
+                        Press 'r' to reverse jog direction.
+                        """
+                                .formatted(
+                                        IntStream.range(0, joints.size())
+                                                .mapToObj(i -> i + " - " + joints.get(i))
+                                                .collect(joining("\n")));
+                if (joints.size() > 9)
+                    jogKeys +=
+                            "Total number of joints is greater than 6 DOF so some joints are"
+                                    + " ignored";
+            }
+            var jogMessageProvider = new JointJogMessageProvider(frameName, joints);
             cli.print(
                     """
 
-                    Use keys to send move commands:
+                    Use following keys to send move commands in Cartesian space:
 
                     Keys w, s - move along x axis
                     Keys a, d - move along y axis
                     Keys q, e - move along z axis
 
+                    %s
+
+                    Additional keys:
+
                     Ctrl-C - quit
-                    """);
+                    """
+                            .formatted(jogKeys));
             Runtime.getRuntime()
                     .addShutdownHook(
                             new Thread() {
@@ -125,26 +146,57 @@ public class TeleopTwistKeyboardApp {
                 CommandLineInterface.nonBlockingSystemInput();
             } catch (Exception e) {
                 cli.printerr(
-                        "Console setup error. Using non interactive console : " + e.getMessage());
+                        "Console setup error. Using non interactive console: " + e.getMessage());
             }
             if (properties.getOption("startServo").isPresent()) startServo(client);
             int key = 0;
+            boolean isReversed = false;
             while ((key = System.in.read()) != -1) {
+                System.out.println("" + key);
                 if (key == '\n') continue;
-                var twist = KEY_MAP.get((char) key);
-                if (twist == null) continue;
-                var message =
-                        new TwistStampedMessage()
-                                .withHeader(
-                                        new HeaderMessage()
-                                                .withStamp(Time.now())
-                                                .withFrameId(frameName))
-                                .withTwist(twist);
-                LOGGER.info(message.toString());
-                // publishing message
-                publisher.submit(message);
+                if (key == 'r') {
+                    isReversed = !isReversed;
+                    continue;
+                }
+                twistMessageProvider
+                        .get(key)
+                        .ifPresent(
+                                message -> {
+                                    LOGGER.info(message.toString());
+                                    // publishing message
+                                    publisherTwist.submit(message);
+                                });
+                jogMessageProvider
+                        .get(new JointJogMessageProvider.Command(key - '0', isReversed))
+                        .ifPresent(
+                                message -> {
+                                    LOGGER.info(message.toString());
+                                    // publishing message
+                                    publisherJog.submit(message);
+                                });
             }
         }
+    }
+
+    private static List<String> readJoints(JRosClient client, String jointStatesTopic) {
+        var q = new SynchronousQueue<List<String>>();
+        client.subscribe(
+                new TopicSubscriber<>(JointStateMessage.class, jointStatesTopic) {
+                    @Override
+                    public void onNext(JointStateMessage item) {
+                        try {
+                            q.put(Arrays.asList(item.name));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        getSubscription().ifPresent(Subscription::cancel);
+                    }
+                });
+        LOGGER.info(
+                "Waiting for joints to be published to {0} (use disableJog option to change"
+                        + " this)",
+                jointStatesTopic);
+        return Unchecked.get(q::take);
     }
 
     private static void startServo(JRos2Client client) {

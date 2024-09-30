@@ -29,6 +29,8 @@ module teleops {
     requires jros2client;
     requires jros2services;
     requires id.xfunction;
+    requires jrosclient;
+    requires jros2messages;
 
     exports pinorobotics.teleops;
 }
