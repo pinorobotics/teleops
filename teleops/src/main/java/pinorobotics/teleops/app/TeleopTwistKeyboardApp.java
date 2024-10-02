@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pinorobotics.teleops;
+package pinorobotics.teleops.app;
 
 import static java.util.stream.Collectors.joining;
 
@@ -46,6 +46,8 @@ import java.util.stream.IntStream;
 import pinorobotics.jros2services.JRos2ServiceClientFactory;
 import pinorobotics.jrosservices.std_srvs.TriggerRequestMessage;
 import pinorobotics.jrosservices.std_srvs.TriggerServiceDefinition;
+import pinorobotics.teleops.generators.JointJogMessageProvider;
+import pinorobotics.teleops.generators.TwistStampedMessageProvider;
 
 public class TeleopTwistKeyboardApp {
     private static final XLogger LOGGER = XLogger.getLogger(TeleopTwistKeyboardApp.class);
