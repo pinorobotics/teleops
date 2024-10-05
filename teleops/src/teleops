@@ -14,7 +14,7 @@ import java.nio.file.*;
  */
  class Launcher {
 
-    static final String MAIN_CLASS = "pinorobotics.teleops.TeleopTwistKeyboardApp";
+    static final String MAIN_CLASS = "pinorobotics.teleops.app.TeleopTwistKeyboardApp";
     
     /**
      * Parent folder of this script
