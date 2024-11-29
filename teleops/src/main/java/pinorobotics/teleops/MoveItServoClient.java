@@ -28,6 +28,8 @@ import pinorobotics.jrosservices.std_srvs.TriggerRequestMessage;
 import pinorobotics.jrosservices.std_srvs.TriggerServiceDefinition;
 
 /**
+ * Client which allows to communicate with MoveIt2 Servo (servo_node)
+ *
  * @author aeon_flux aeon_flux@eclipso.ch
  */
 public class MoveItServoClient {

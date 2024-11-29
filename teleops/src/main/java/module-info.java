@@ -16,13 +16,19 @@
  * limitations under the License.
  */
 /**
- * Java module which allows to interact with MoveIt in ROS2 (Robot Operating System).
+ * <b>teleops</b> - Java module for teleoperation of robotic arms in ROS2.
  *
- * <p>For usage examples see <a href="http://pinoweb.freetzi.com/jrosmoveit">Documentation</a>
+ * <ul>
+ *   <li>Allows to publish {@link
+ *       id.jros2messages.geometry_msgs.TwistStampedMessage.TwistStampedMessage} and {@link
+ *       id.jros2messages.control_msgs.JointJogMessage} messages to ROS topics
+ *   <li>Provides client to MoveIt2 Servo API (see {@link pinorobotics.teleops.MoveItServoClient})
+ * </ul>
  *
- * @see <a href="http://pinoweb.freetzi.com/jrosmoveit">Documentation</a>
- * @see <a href="https://github.com/pinorobotics/jros2moveit/releases">Download</a>
- * @see <a href="https://github.com/pinorobotics/jros2moveit">GitHub repository</a>
+ * @see <a href="http://pinoweb.freetzi.com/teleops">Documentation</a>
+ * @see <a
+ *     href="https://github.com/pinorobotics/teleops/blob/main/teleops/release/CHANGELOG.md">Download</a>
+ * @see <a href="https://github.com/pinorobotics/teleops">GitHub repository</a>
  * @author aeon_flux aeon_flux@eclipso.ch
  */
 module teleops {
@@ -31,6 +37,7 @@ module teleops {
     requires id.xfunction;
     requires jrosclient;
     requires jros2messages;
+    requires jrosservices;
 
     exports pinorobotics.teleops;
 }

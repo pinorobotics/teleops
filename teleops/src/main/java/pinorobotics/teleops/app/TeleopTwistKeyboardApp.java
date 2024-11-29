@@ -126,7 +126,7 @@ public class TeleopTwistKeyboardApp {
 
                 Ctrl-C - quit
 
-                Use option -h to see more help
+                To see more help, run 'teleops' with -h option
                 """
                         .formatted(jogKeys));
         Runtime.getRuntime()
