@@ -37,7 +37,7 @@ subprojects {
         googleJavaFormat().aosp().reflowLongStrings()
 
         licenseHeader '''/*
- * Copyright $YEAR teleops project
+ * Copyright $YEAR pinorobotics
  * 
  * Website: https://github.com/pinorobotics/teleops
  * 
