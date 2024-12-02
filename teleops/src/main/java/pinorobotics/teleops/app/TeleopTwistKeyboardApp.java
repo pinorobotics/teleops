@@ -79,7 +79,7 @@ public class TeleopTwistKeyboardApp {
                             ? new TeleopsUtils().readJoints(client, jointStatesTopic)
                             : List.of();
             if (properties.getOption("startServo").isPresent())
-                new MoveItServoClient().startServo(client);
+                new MoveItServoClient(client).startServo();
             try (var teleopsClient =
                     new TeleopsClientFactory()
                             .createClient(

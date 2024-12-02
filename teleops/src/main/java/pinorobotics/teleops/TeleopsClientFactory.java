@@ -46,7 +46,7 @@ public class TeleopsClientFactory {
      * Creates client which by default publishes all movement commands to MoveIt Servo topics.
      *
      * <p>Users suppose to start MoveIt Servo node before it can process the messages (see {@link
-     * MoveItServoClient#startServo(id.jros2client.JRos2Client)})
+     * MoveItServoClient#startServo()})
      *
      * @param client ROS client
      * @param frameName name of the frame where to perform the movements

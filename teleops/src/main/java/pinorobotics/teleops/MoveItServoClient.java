@@ -28,15 +28,22 @@ import pinorobotics.jrosservices.std_srvs.TriggerRequestMessage;
 import pinorobotics.jrosservices.std_srvs.TriggerServiceDefinition;
 
 /**
- * Client which allows to communicate with MoveIt2 Servo (servo_node)
+ * Client which allows to communicate with <a
+ * href="https://moveit.picknik.ai/main/doc/examples/realtime_servo/realtime_servo_tutorial.html">MoveIt2
+ * Servo</a> (servo_node)
  *
  * @author aeon_flux aeon_flux@eclipso.ch
  */
 public class MoveItServoClient {
     private static final XLogger LOGGER = XLogger.getLogger(MoveItServoClient.class);
+    private JRos2Client client;
+
+    public MoveItServoClient(JRos2Client client) {
+        this.client = client;
+    }
 
     /** Send start request to servo_node */
-    public void startServo(JRos2Client client) {
+    public void startServo() {
         try (var service =
                 new JRos2ServiceClientFactory()
                         .createClient(
