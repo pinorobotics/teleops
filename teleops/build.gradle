@@ -27,8 +27,9 @@ eclipse.classpath.file {
 }
 
 dependencies {
-  implementation 'io.github.lambdaprime:jros2client:11.0'
-  implementation 'io.github.pinorobotics:jros2services:7.0'
+  implementation "io.github.lambdaprime:id.xfunction:27.0"
+  implementation "io.github.lambdaprime:jros2client:11.0"
+  implementation "io.github.pinorobotics:jros2services:7.0"
 }
 
 configurations {

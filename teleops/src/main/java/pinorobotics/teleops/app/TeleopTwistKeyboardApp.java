@@ -34,6 +34,7 @@ import pinorobotics.teleops.TeleopsClientFactory;
 import pinorobotics.teleops.TeleopsUtils;
 import pinorobotics.teleops.app.keyprocessors.CartesianMoveKeyProcessor;
 import pinorobotics.teleops.app.keyprocessors.JointJogKeyProcessor;
+import pinorobotics.teleops.impl.CommandLineInterfaceUtils;
 
 /**
  * @author aeon_flux aeon_flux@eclipso.ch
@@ -135,17 +136,18 @@ public class TeleopTwistKeyboardApp {
                             @Override
                             public void run() {
                                 try {
-                                    CommandLineInterface.echo(true);
+                                    CommandLineInterfaceUtils.echo(true);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
                         });
         try {
-            CommandLineInterface.echo(false);
-            CommandLineInterface.nonBlockingSystemInput();
+            CommandLineInterfaceUtils.echo(false);
+            CommandLineInterfaceUtils.nonBlockingSystemInput();
         } catch (Exception e) {
-            cli.printerr("Console setup error. Using non interactive console: " + e.getMessage());
+            cli.printerr(
+                    "Console setup error. Switching to non interactive console: " + e.getMessage());
         }
 
         var jointJogKeyProcessor = new JointJogKeyProcessor(teleopsClient, joints);

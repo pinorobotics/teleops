@@ -40,7 +40,7 @@ import java.nio.file.*;
             "--add-modules", "teleops"));
         argsList.add(MAIN_CLASS);
         argsList.addAll(Arrays.asList(args));
-        System.err.println("Run command: " + argsList);
+        System.err.println("Running command: " + argsList);
         // separate further output from application with a newline
         System.err.println();
         System.exit(new ProcessBuilder(argsList).inheritIO().start().waitFor());
