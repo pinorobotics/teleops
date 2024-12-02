@@ -19,8 +19,7 @@
  * <b>teleops</b> - Java module for teleoperation of robotic arms in ROS2.
  *
  * <ul>
- *   <li>Allows to publish {@link
- *       id.jros2messages.geometry_msgs.TwistStampedMessage.TwistStampedMessage} and {@link
+ *   <li>Allows to publish {@link id.jros2messages.geometry_msgs.TwistStampedMessage} and {@link
  *       id.jros2messages.control_msgs.JointJogMessage} messages to ROS topics
  *   <li>Provides client to MoveIt2 Servo API (see {@link pinorobotics.teleops.MoveItServoClient})
  * </ul>

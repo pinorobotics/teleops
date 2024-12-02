@@ -8,7 +8,7 @@ Users can use **teleops** in one of two ways:
 
 # Requirements
 
-Java 22+
+- Java 22+
 
 # Download
 
@@ -36,7 +36,7 @@ teleops [ <OPTIONS> ]
 ```
 
 Options:
-
+```
 -twistTopic=<string>
 -jogTopic=<string>
 -jointStatesTopic=<string>
@@ -44,6 +44,7 @@ Options:
 -frame=<string>
 -startServo=<true|false>
 -debug=<true|false>
+```
 
 See [Documentation](http://pinoweb.freetzi.com/teleops) for option details and examples.
 

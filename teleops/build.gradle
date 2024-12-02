@@ -42,6 +42,36 @@ jar {
   }
 }
 
+javadoc {
+  options.noTimestamp = true
+  options.noQualifiers = ["all"]
+  options.noTree = true
+  options.noIndex = true
+  options.noNavBar = true
+  // ignore missing @return, @param etc
+  options.addBooleanOption('Xdoclint:all,-missing', true)
+  options.addStringOption('-show-packages', 'exported')
+  // Gradle does not support exclude correctly:
+  // https://github.com/gradle/gradle/issues/19726
+  def sourceSetDirectories = sourceSets
+    .main
+    .java
+    .sourceDirectories
+    .getFiles()
+    .stream()
+    .map({f -> f.toString() })
+    .collect(java.util.stream.Collectors.joining(":"))
+  options.addStringOption("-source-path", sourceSetDirectories)
+  options.addMultilineStringsOption("link").value = [
+    "http://portal2.atwebpages.com/jrosclient/javadoc/jrosclient/",
+    "http://portal2.atwebpages.com/jrosclient/javadoc/jros2client/",
+    "http://portal2.atwebpages.com/jrosclient/javadoc/jrosmessages/",
+    "http://portal2.atwebpages.com/jrosclient/javadoc/jros2messages/",
+    "http://pinoweb.freetzi.com/jrosactionlib/javadoc/jros2services/"
+  ]
+  exclude 'pinorobotics/teleops/impl/**'
+}
+
 def packageDir = "$buildDir/package/${projectName}"
 
 ext.artifacts = fileTree(include: ['*'], dir: "$packageDir/libs")
@@ -66,8 +96,7 @@ task copyReadme(type: Copy) {
 
 // overwrite template README which comes from resources folder
 jar.dependsOn copyReadme
-
-javadoc.enabled = false
+javadoc.dependsOn copyReadme
 
 task createPackage(type: Copy, dependsOn: [copyLibs]) {
   from "${project.rootDir}/README.md"

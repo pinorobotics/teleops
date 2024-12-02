@@ -39,6 +39,9 @@ public interface TeleopsClient extends AutoCloseable {
      *
      * <p>For example, following velocities will move only first joint of the 6 DOF robot in the
      * opposite direction: 0, -1, 0, 0, 0, 0
+     *
+     * <p>See {@link TeleopsUtils#readJoints(id.jrosclient.JRosClient, String)} to find number of
+     * joints available in the robot (in case number of joints is not known in advance)
      */
     void move(double... velocities);
 }
