@@ -129,3 +129,77 @@ task updateVersion() {
     ));
 }
 createRelease.dependsOn updateVersion
+
+if (project.hasProperty('publish')) {
+
+  // Initially it was taken from https://central.sonatype.org/publish/publish-gradle/
+  // but since Gradle removed this plugin https://docs.gradle.org/7.0/userguide/upgrading_version_6.html#removal_of_the_legacy_maven_plugin
+  // it was rewritten for new one
+
+  task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from "README-javadoc.txt"
+  }
+
+  task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from "README-sources.txt"
+  }
+
+  java {
+    withJavadocJar()
+    withSourcesJar()
+  }
+
+  apply plugin: 'maven-publish'
+
+  publishing {
+    publications {
+      mavenJava(MavenPublication) {
+        artifactId = 'teleops'
+        groupId = 'io.github.pinorobotics'
+        from components.java
+        pom {
+          name = 'teleops'
+          description = 'Java module for teleoperation of robotic arms in ROS2'
+          url = 'https://github.com/pinorobotics/teleops'
+
+          licenses {
+            license {
+              name = 'The Apache License, Version 2.0'
+              url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+          }
+
+          developers {
+            developer {
+              id = 'aeon'
+              email = 'aeon_flux@eclipso.ch'
+            }
+          }
+
+          scm {
+            url = 'https://github.com/pinorobotics/teleops'
+          }
+        }
+      }
+    }
+    repositories {
+      maven {
+        credentials {
+          username ossrhUsername
+          password ossrhPassword
+        }
+        url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+      }
+    }
+  }
+
+  if (project.hasProperty('signing.secretKeyRingFile')) {
+    apply plugin: 'signing'
+
+    signing {
+      sign publishing.publications.mavenJava
+    }
+  }
+}

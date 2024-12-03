@@ -1,5 +1,11 @@
 /*************************************************
 gradle clean build
+
+gradle publishToMavenLocal \
+ -Ppublish=true \
+ -PossrhUsername=XXX \
+ -PossrhPassword=XXX
+
 **************************************************/
 
 plugins {
