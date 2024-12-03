@@ -20,7 +20,7 @@ Gradle:
 
 ```
 dependencies {
-  implementation 'io.github.pinorobotics:teleops:1.0'
+  implementation "io.github.pinorobotics:teleops:1.1"
 }
 ```
 
