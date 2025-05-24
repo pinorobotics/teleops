@@ -98,6 +98,9 @@ task copyReadme(type: Copy) {
   from("../README.md")
   into("$buildDir/resources/main")
   rename ("README.md", "README-${projectName}.md")
+  doLast {
+    assert file("$buildDir/resources/main/README-${projectName}.md").exists()
+  }
 }
 
 // overwrite template README which comes from resources folder
@@ -108,6 +111,7 @@ task createPackage(type: Copy, dependsOn: [copyLibs]) {
   from "${project.rootDir}/README.md"
   from "${project.rootDir}/LICENSE-2.0.txt"
   from file("$projectDir/src/teleops")
+  from file("$projectDir/src/teleops.bat")
   into packageDir
 }
 

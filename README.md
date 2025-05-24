@@ -1,6 +1,6 @@
 **teleops** - Java module for teleoperation of robotic arms in ROS2.
 - Allows to publish geometry_msgs/TwistStamped and control_msgs/JointJog messages to ROS topics
-- provides client to MoveIt2 Servo API (MoveItServoClient)
+- provides client for MoveIt2 Servo API (MoveItServoClient)
 
 Users can use **teleops** in one of two ways:
 - Java module/library, by calling **teleops** Java API from Java code or JShell

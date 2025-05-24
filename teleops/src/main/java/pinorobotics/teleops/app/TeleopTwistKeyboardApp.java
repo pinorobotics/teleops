@@ -115,20 +115,20 @@ public class TeleopTwistKeyboardApp {
         cli.print(
                 """
 
-                Use following keys to send move commands in Cartesian space:
+Use following keys to send move commands in Cartesian space:
 
-                Keys w, s - move along x axis
-                Keys a, d - move along y axis
-                Keys q, e - move along z axis
+Keys w, s - move along x axis
+Keys a, d - move along y axis
+Keys q, e - move along z axis
 
-                %s
+%s
 
-                Additional keys:
+Additional keys:
 
-                Ctrl-C - quit
+Ctrl-C - quit
 
-                To see more help, run 'teleops' with -h option
-                """
+To see more help, run 'teleops' with -h option
+"""
                         .formatted(jogKeys));
         Runtime.getRuntime()
                 .addShutdownHook(

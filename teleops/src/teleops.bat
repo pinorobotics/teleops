@@ -1,0 +1,1 @@
+java --source 22 "%~dp0\teleops" %*

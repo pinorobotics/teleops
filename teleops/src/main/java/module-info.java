@@ -20,8 +20,9 @@
  *
  * <ul>
  *   <li>Allows to publish {@link id.jros2messages.geometry_msgs.TwistStampedMessage} and {@link
- *       id.jros2messages.control_msgs.JointJogMessage} messages to ROS topics
- *   <li>Provides client to MoveIt2 Servo API (see {@link pinorobotics.teleops.MoveItServoClient})
+ *       id.jros2messages.control_msgs.JointJogMessage} messages to ROS topics and move the robot
+ *       (see {@link pinorobotics.teleops.TeleopsClient})
+ *   <li>Provides client for MoveIt2 Servo API (see {@link pinorobotics.teleops.MoveItServoClient})
  * </ul>
  *
  * @see <a href="http://pinoweb.freetzi.com/teleops">Documentation</a>
