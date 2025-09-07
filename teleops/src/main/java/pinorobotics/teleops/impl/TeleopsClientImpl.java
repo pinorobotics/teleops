@@ -29,6 +29,7 @@ import id.jrosmessages.std_msgs.StringMessage;
 import id.xfunction.Preconditions;
 import id.xfunction.logging.XLogger;
 import java.util.List;
+import java.util.stream.IntStream;
 import pinorobotics.teleops.TeleopsClient;
 
 /**
@@ -56,7 +57,7 @@ public class TeleopsClientImpl implements TeleopsClient {
         publisherTwist = new TopicSubmissionPublisher<>(TwistStampedMessage.class, twistTopicName);
         publisherJog = new TopicSubmissionPublisher<>(JointJogMessage.class, jogTopicName);
         this.joints =
-                joints.stream().map(j -> new StringMessage(j)).toArray(i -> new StringMessage[i]);
+                joints.stream().map(j -> new StringMessage(j)).toArray(sz -> new StringMessage[sz]);
         client.publish(publisherTwist);
         client.publish(publisherJog);
     }
@@ -82,12 +83,21 @@ public class TeleopsClientImpl implements TeleopsClient {
                 joints.length,
                 velocities.length,
                 "mismatch between number of velocities and joints");
+        // move only joints with non zero velocities
+        var jointIndices =
+                IntStream.range(0, velocities.length).filter(i -> velocities[i] != 0).toArray();
+        var filteredVelocities =
+                IntStream.of(jointIndices).mapToDouble(i -> velocities[i]).toArray();
+        var filteredJoints =
+                IntStream.of(jointIndices)
+                        .mapToObj(i -> joints[i])
+                        .toArray(sz -> new StringMessage[sz]);
         var message =
                 new JointJogMessage()
                         .withHeader(
                                 new HeaderMessage().withStamp(Time.now()).withFrameId(frameName))
-                        .withJointNames(joints)
-                        .withVelocities(velocities);
+                        .withJointNames(filteredJoints)
+                        .withVelocities(filteredVelocities);
         LOGGER.info(message.toString());
         // publishing message
         publisherJog.submit(message);

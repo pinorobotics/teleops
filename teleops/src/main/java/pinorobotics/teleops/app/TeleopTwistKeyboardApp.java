@@ -19,8 +19,10 @@ package pinorobotics.teleops.app;
 
 import static java.util.stream.Collectors.joining;
 
+import id.jros2client.JRos2Client;
 import id.jros2client.JRos2ClientFactory;
 import id.jroscommon.RosRelease;
+import id.xfunction.Preconditions;
 import id.xfunction.ResourceUtils;
 import id.xfunction.cli.ArgumentParsingException;
 import id.xfunction.cli.CommandLineInterface;
@@ -29,7 +31,6 @@ import id.xfunction.logging.XLogger;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.IntStream;
-import pinorobotics.jros2moveit.MoveItServoClient;
 import pinorobotics.teleops.TeleopsClient;
 import pinorobotics.teleops.TeleopsClientFactory;
 import pinorobotics.teleops.TeleopsUtils;
@@ -62,6 +63,24 @@ public class TeleopTwistKeyboardApp {
                         ? "logging-teleops-debug.properties"
                         : "logging-teleops.properties");
         LOGGER.fine("Input arguments {0}", properties);
+        var frameName = properties.getOption("frame").orElse("");
+        var jointStatesTopic =
+                properties
+                        .getOption("jointStatesTopic")
+                        .orElse(TeleopsUtils.DEFAULT_JOINT_STATES_TOPIC_NAME);
+        try (var client = new JRos2ClientFactory().createClient()) {
+            List<String> joints =
+                    properties.isOptionTrue("enableJog")
+                            ? new TeleopsUtils().readJoints(client, jointStatesTopic)
+                            : List.of();
+            try (var teleopsClient = createTeleopsClient(properties, client, frameName, joints)) {
+                run(frameName, joints, teleopsClient);
+            }
+        }
+    }
+
+    private static TeleopsClient createTeleopsClient(
+            CommandOptions properties, JRos2Client client, String frameName, List<String> joints) {
         var twistTopicName =
                 properties
                         .getOption("twistTopic")
@@ -70,29 +89,22 @@ public class TeleopTwistKeyboardApp {
                 properties
                         .getOption("jogTopic")
                         .orElse(TeleopsClientFactory.DEFAULT_JOG_TOPIC_NAME);
-        var frameName = properties.getOption("frame").orElse("");
-        var jointStatesTopic =
-                properties
-                        .getOption("jointStatesTopic")
-                        .orElse(TeleopsUtils.DEFAULT_JOINT_STATES_TOPIC_NAME);
         var rosRelease =
                 properties
                         .getOption("rosRelease")
                         .map(RosRelease::valueOf)
                         .orElse(RosRelease.ROS2_JAZZY);
-        try (var client = new JRos2ClientFactory().createClient()) {
-            List<String> joints =
-                    properties.isOptionTrue("enableJog")
-                            ? new TeleopsUtils().readJoints(client, jointStatesTopic)
-                            : List.of();
-            if (properties.getOption("startServo").isPresent())
-                new MoveItServoClient(client, rosRelease).startServo();
-            try (var teleopsClient =
-                    new TeleopsClientFactory()
-                            .createClient(
-                                    client, frameName, joints, twistTopicName, jogTopicName)) {
-                run(frameName, joints, teleopsClient);
-            }
+        var factory = new TeleopsClientFactory();
+        var startServo = properties.isOptionTrue("startServo");
+        if (properties.isOptionTrue("moveitServo")) {
+            return switch (rosRelease) {
+                case ROS2_HUMBLE ->
+                        factory.createHumbleClientForServo(client, frameName, joints, !startServo);
+                default -> factory.createJazzyClientForServo(client, frameName, joints);
+            };
+        } else {
+            Preconditions.isTrue(!startServo, "startServo requires moveitServo to be enabled");
+            return factory.createClient(client, frameName, joints, twistTopicName, jogTopicName);
         }
     }
 
