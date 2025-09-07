@@ -43,6 +43,7 @@ Options:
 -enableJog=<true|false>
 -frame=<string>
 -startServo=<true|false>
+-rosRelease=<string>
 -debug=<true|false>
 ```
 

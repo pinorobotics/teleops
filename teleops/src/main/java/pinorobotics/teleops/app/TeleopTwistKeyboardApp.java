@@ -20,6 +20,7 @@ package pinorobotics.teleops.app;
 import static java.util.stream.Collectors.joining;
 
 import id.jros2client.JRos2ClientFactory;
+import id.jroscommon.RosRelease;
 import id.xfunction.ResourceUtils;
 import id.xfunction.cli.ArgumentParsingException;
 import id.xfunction.cli.CommandLineInterface;
@@ -28,7 +29,7 @@ import id.xfunction.logging.XLogger;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.IntStream;
-import pinorobotics.teleops.MoveItServoClient;
+import pinorobotics.jros2moveit.MoveItServoClient;
 import pinorobotics.teleops.TeleopsClient;
 import pinorobotics.teleops.TeleopsClientFactory;
 import pinorobotics.teleops.TeleopsUtils;
@@ -74,13 +75,18 @@ public class TeleopTwistKeyboardApp {
                 properties
                         .getOption("jointStatesTopic")
                         .orElse(TeleopsUtils.DEFAULT_JOINT_STATES_TOPIC_NAME);
+        var rosRelease =
+                properties
+                        .getOption("rosRelease")
+                        .map(RosRelease::valueOf)
+                        .orElse(RosRelease.ROS2_JAZZY);
         try (var client = new JRos2ClientFactory().createClient()) {
             List<String> joints =
                     properties.isOptionTrue("enableJog")
                             ? new TeleopsUtils().readJoints(client, jointStatesTopic)
                             : List.of();
             if (properties.getOption("startServo").isPresent())
-                new MoveItServoClient(client).startServo();
+                new MoveItServoClient(client, rosRelease).startServo();
             try (var teleopsClient =
                     new TeleopsClientFactory()
                             .createClient(

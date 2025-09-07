@@ -61,7 +61,7 @@ public class TeleopsUtils {
                     }
                 });
         LOGGER.info(
-                "Waiting for joints to be published to {0} (use disableJog option to change"
+                "Waiting for joints to be published to {0} (use enableJog option to change"
                         + " this)",
                 jointStatesTopic);
         return Unchecked.get(q::take);

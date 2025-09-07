@@ -32,12 +32,12 @@
  * @author aeon_flux aeon_flux@eclipso.ch
  */
 module teleops {
-    requires jros2client;
-    requires jros2services;
+    requires transitive jros2client;
+    requires transitive jroscommon;
     requires id.xfunction;
     requires jrosclient;
     requires jros2messages;
-    requires jrosservices;
+    requires jros2moveit;
 
     exports pinorobotics.teleops;
 }
